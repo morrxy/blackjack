@@ -25,23 +25,24 @@ include Test::Unit::Assertions
 
 def calculate_total(cards)
   cards_ace = cards.select { |c| c[1] == 'A' }
-  # puts 'card_ace:' + cards_ace.inspect
-
   cards_noace = cards.select { |c| c[1] != 'A' }
-  # puts 'cards_noace:' + cards_noace.inspect
 
-  sum1 = sum_noace(cards_noace)
+  val_noace = sum_noace(cards_noace)
 
-  return [sum1] if cards_ace.size > 0
+  return val_noace if cards_ace.size == 0
 
   ace_sums = calculate_ace_sum(cards_ace.size)
 
   sums = []
-  ace_sums.each { |x| sums << x + sum1 }
-  sums
-  # puts sums.inspect
+  ace_sums.each { |x| sums << x + val_noace }
 
-  # sums.bsearch { |x| x < 21 }
+  arr_21 = sums.select { |x| x == 21 }
+  return 21 if arr_21.size > 0
+
+  return 22 if sums.first > 21
+
+  arr_20 = sums.select { |x| x < 21 }
+  arr_20.last
 end
 
 # Array -> Integer
@@ -122,11 +123,76 @@ dealercards << deck.pop
 dealertotal = calculate_total(dealercards)
 mytotal = calculate_total(mycards)
 
-puts "Dealer has: #{ dealercards[0] } and #{ dealercards[1] }, " \
-"for a total of one of: #{ dealertotal.inspect }"
-puts "You have: #{ mycards[0] } and #{ mycards[1] }, " \
-"for a total of one of: #{ mytotal.inspect }"
-puts ''
-puts 'What would you like to do? 1) hit 2) stay'
-# hit_or_stay = gets.chomp
+def ask_player(dealercards, mycards, dealertotal, mytotal)
+  puts "Dealer has: #{ dealercards.inspect } " \
+  "for a total of: #{ dealertotal }"
+  puts "You have: #{ mycards.inspect } " \
+  "for a total of: #{ mytotal }"
+  puts ''
+  puts 'What would you like to do? 1) hit 2) stay'
+end
+
+ask_player(dealercards, mycards, dealertotal, mytotal)
+
+while true
+  hit_or_stay = gets.chomp
+  if (!%w(1 2).include?(hit_or_stay))
+    puts 'What would you like to do? 1) hit 2) stay'
+    next
+  end
+
+  break if hit_or_stay == '2'
+
+  mycards << deck.pop
+  mytotal = calculate_total(mycards)
+
+  if (mytotal == 21)
+    puts "You have: #{ mycards.inspect } " \
+    "for a total of: #{ mytotal }"
+    puts 'Blackjack! You win!'
+    exit
+    # break
+  end
+
+  if (mytotal > 21)
+    puts "You have: #{ mycards.inspect } " \
+    "for a total of: #{ mytotal }"
+    puts 'Burst! You lose!'
+    exit
+    # break
+  end
+
+  ask_player(dealercards, mycards, dealertotal, mytotal)
+end
+
+while true
+  break if (dealertotal >= 17 && dealertotal > mytotal)
+  dealercards << deck.pop
+  dealertotal = calculate_total(dealercards)
+end
+
+puts "Dealer has: #{ dealercards.inspect } " \
+"for a total of: #{ dealertotal }"
+
+if dealertotal == 21
+  puts 'Blackjack! Dealer win!'
+  exit
+end
+
+if dealertotal > 21
+  puts 'Dealer burst! You win!'
+  exit
+end
+
+if (mytotal > dealertotal)
+  puts 'You win'
+elsif (mytotal < dealertotal)
+  puts 'You lose'
+else
+  puts 'draw game'
+end
+
+
+
+
 
