@@ -136,7 +136,7 @@ ask_player(dealercards, mycards, dealertotal, mytotal)
 
 while true
   hit_or_stay = gets.chomp
-  if (!%w(1 2).include?(hit_or_stay))
+  unless %w(1 2).include?(hit_or_stay)
     puts 'What would you like to do? 1) hit 2) stay'
     next
   end
@@ -146,7 +146,7 @@ while true
   mycards << deck.pop
   mytotal = calculate_total(mycards)
 
-  if (mytotal == 21)
+  if mytotal == 21
     puts "You have: #{ mycards.inspect } " \
     "for a total of: #{ mytotal }"
     puts 'Blackjack! You win!'
@@ -154,7 +154,7 @@ while true
     # break
   end
 
-  if (mytotal > 21)
+  if mytotal > 21
     puts "You have: #{ mycards.inspect } " \
     "for a total of: #{ mytotal }"
     puts 'Burst! You lose!'
@@ -166,7 +166,7 @@ while true
 end
 
 while true
-  break if (dealertotal >= 17 && dealertotal > mytotal)
+  break if dealertotal >= 17 && dealertotal > mytotal
   dealercards << deck.pop
   dealertotal = calculate_total(dealercards)
 end
@@ -184,15 +184,10 @@ if dealertotal > 21
   exit
 end
 
-if (mytotal > dealertotal)
+if mytotal > dealertotal
   puts 'You win'
-elsif (mytotal < dealertotal)
+elsif mytotal < dealertotal
   puts 'You lose'
 else
   puts 'draw game'
 end
-
-
-
-
-
