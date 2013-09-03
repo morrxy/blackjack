@@ -74,11 +74,9 @@ end
 # every ace value can be 1 or 11
 def make_ace_vals(n)
   aces = make_aces(n)
-
   ace_sets = aces.combination(n).to_a
 
   ace_vals = calculate_ace_sets(ace_sets)
-
   ace_vals.uniq!
   ace_vals.sort!
 end
