@@ -171,8 +171,8 @@ play_game
 
 while true
   puts 'play again? y)Yes n)No'
-answer = gets.chomp
-next unless %w(y n).include?(answer.downcase)
-break if answer.downcase == 'n'
-play_game if answer.downcase == 'y'
+  play_again = gets.chomp
+  next unless %w(y n).include?(play_again.downcase)
+  break if play_again.downcase == 'n'
+  play_game if play_again.downcase == 'y'
 end
