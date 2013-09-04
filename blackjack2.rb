@@ -1,25 +1,72 @@
-def play_game
-  deck = new_deck
-  puts "decksize:#{ deck.size }"
+require 'test/unit'
+include Test::Unit::Assertions
 
+def play_game(player_name)
+  puts "#{ '=' * 40 }"
+  puts "Hi #{ player_name }! Welcome Blackjack!"
+
+  deck = new_deck
   mycards = []
   dealercards = []
   deal(deck, mycards, dealercards)
-  puts "my:#{ mycards.inspect } dealer:#{ dealercards.inspect }"
-  puts "decksize:#{ deck.size }"
 
   mytotal = calculate_total(mycards)
   dealertotal = calculate_total(dealercards)
-  puts "detotal:#{ dealertotal } mytotal:#{ mytotal }"
 
-  if dealertotal == mytotal && mytotal == 21
+  if mytotal == 21 && dealertotal < 21
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "Blackjack! #{player_name} win!"
+    return
+  end
+
+  if mytotal == 21 && dealertotal == mytotal
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
     puts 'draw game'
     return
   end
 
-  mytotal = player_turn(deck, mycards, mytotal, dealertotal)
+  mytotal = player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
 
-  dealertotal = dealer_turn(deck, mycards, mytotal, dealertotal)
+  if mytotal == 21
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "Blackjack! #{player_name} win!"
+    return
+  end
+
+  if mytotal > 21
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "burst! #{ player_name } lose"
+    return
+  end
+
+  dealertotal = dealer_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+
+  if dealertotal > 21
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "dealer burst! #{ player_name } win"
+    return
+  end
+
+  report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+  if mytotal > dealertotal
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "#{ player_name } win"
+  elsif mytotal < dealertotal
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts 'Dealer win'
+  else
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    puts 'draw game'
+  end
+end
+
+def report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+  puts
+  puts "dealer's cards: #{ dealercards.inspect }"
+  puts "dealer's total: #{ dealertotal }"
+  puts "#{ player_name }'s cards: #{ mycards.inspect }"
+  puts "#{ player_name }'s total: #{ mytotal }"
+  puts
 end
 
 def new_deck
@@ -30,16 +77,17 @@ def new_deck
 end
 
 def deal(deck, mycards, dealercards)
-  puts 'dealing'
   mycards << deck.pop
   dealercards << deck.pop
   mycards << deck.pop
   dealercards << deck.pop
 end
 
-def player_turn(deck, mycards, mytotal, dealertotal)
+# produce new mytotal,22 or 21 or <21
+def player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
 
   while true
+    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
     puts 'What would you like to do? 1) hit 2) stay'
     hit_or_stay = gets.chomp
     unless %w(1 2).include?(hit_or_stay)
@@ -51,33 +99,21 @@ def player_turn(deck, mycards, mytotal, dealertotal)
 
     mycards << deck.pop
     mytotal = calculate_total(mycards)
-
-    if mytotal == 21
-      puts "You have: #{ mycards.inspect } " \
-      "for a total of: #{ mytotal }"
-      puts 'Blackjack! You win!'
-      return 21
-    end
-
-    if mytotal > 21
-      puts "You have: #{ mycards.inspect } " \
-      "for a total of: #{ mytotal }"
-      puts 'Burst! You lose!'
-      return 22
-    end
-
+    return 21 if mytotal == 21
+    return 22 if mytotal > 21
   end
 
+  mytotal
 end
 
-# !!!
-def dealer_turn(deck, mycards, mytotal, dealertotal)
-  puts 'dealer turn'
+def dealer_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
   while true
     break if dealertotal >= 17 && dealertotal > mytotal
     dealercards << deck.pop
+    # puts "decksize:#{ deck.size }"
     dealertotal = calculate_total(dealercards)
   end
+  dealertotal
 end
 
 def calculate_total(cards)
@@ -164,15 +200,44 @@ def calculate_ace_sets(arr)
   result
 end
 
-puts 'Welcome Blackjack! What\'s your name?'
+# unit test start
+assert_equal(2, calculate_value(%w(S 2)))
+assert_equal(9, calculate_value(%w(S 9)))
+assert_equal(10, calculate_value(%w(S 10)))
+assert_equal(10, calculate_value(%w(S J)))
+
+assert_equal(10, sum_2_to_k([%w(D 10)]))
+assert_equal(14, sum_2_to_k([%w(D 10), %w(S 4)]))
+assert_equal(21, sum_2_to_k([%w(D 2), %w(D 9), %w(S K)]))
+
+assert_equal([1, 11], make_aces(1))
+assert_equal([1, 11, 1, 11], make_aces(2))
+assert_equal([1, 11, 1, 11, 1, 11], make_aces(3))
+assert_equal([1, 11, 1, 11, 1, 11, 1, 11], make_aces(4))
+
+assert_equal([8, 9], calculate_ace_sets([[8], [9]]))
+assert_equal([5, 16], calculate_ace_sets([[2, 3], [6, 10]]))
+assert_equal([11, 23], calculate_ace_sets([[2, 3, 6], [6, 7, 10]]))
+
+assert_equal([1, 11], make_ace_vals(1))
+assert_equal([2, 12, 22], make_ace_vals(2))
+assert_equal([3, 13, 23, 33], make_ace_vals(3))
+assert_equal([4, 14, 24, 34, 44], make_ace_vals(4))
+
+assert_equal([4, 14], make_total_vals(3, 1))
+assert_equal([6, 16, 26], make_total_vals(4, 2))
+assert_equal([5, 15, 25, 35], make_total_vals(2, 3))
+
+# main progress start
+puts 'What\'s your name?'
 player_name = gets.chomp
 
-play_game
+play_game(player_name)
 
 while true
-  puts 'play again? y)Yes n)No'
+  puts "\nplay again? 1)Yes 2)No"
   play_again = gets.chomp
-  next unless %w(y n).include?(play_again.downcase)
-  break if play_again.downcase == 'n'
-  play_game if play_again.downcase == 'y'
+  next unless %w(1 2).include?(play_again.downcase)
+  break if play_again.downcase == '2'
+  play_game(player_name) if play_again.downcase == '1'
 end
