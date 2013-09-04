@@ -236,8 +236,8 @@ play_game(player_name)
 
 while true
   puts "\nplay again? 1)Yes 2)No"
-  play_again = gets.chomp
-  next unless %w(1 2).include?(play_again.downcase)
-  break if play_again.downcase == '2'
-  play_game(player_name) if play_again.downcase == '1'
+  again = gets.chomp
+  next unless %w(1 2).include?(again)
+  break if again == '2'
+  play_game(player_name) if again == '1'
 end
