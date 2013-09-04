@@ -1,120 +1,27 @@
+# encoding: UTF-8
+#
+# Blackjack is a card game where you calculate the sum of the values of your
+# cards and try to hit 21, aka "blackjack". Both the player and dealer are
+# dealt two cards to start the game. All face cards are worth whatever
+# numerical value they show. Suit cards are worth 10. Aces can be worth either
+# 11 or 1. Example: if you have a Jack and an Ace, then you have hit
+# "blackjack", as it adds up to 21.
+#
+# After being dealt the initial 2 cards, the player goes first and can choose
+# to either "hit" or "stay". Hitting means deal another card. If the player's
+# cards sum up to be greater than 21, the player has "busted" and lost. If the
+# sum is 21, then the player wins. If the sum is less than 21, then the player
+# can choose to "hit" or "stay" again. If the player "hits", then repeat above,
+# but if the player stays, then the player's total value is saved, and the turn
+# moves to the dealer.
+#
+# By rule, the dealer must hit until she has at least 17. If the dealer busts,
+# then the player wins. If the dealer, hits 21, then the dealer wins. If,
+# however, the dealer stays, then we compare the sums of the two hands between
+# the player and dealer; higher value wins.
+
 require 'test/unit'
 include Test::Unit::Assertions
-
-def play_game(player_name)
-  puts "#{ '=' * 40 }"
-  puts "Hi #{ player_name }! Welcome Blackjack!"
-
-  deck = new_deck
-  mycards = []
-  dealercards = []
-  deal(deck, mycards, dealercards)
-
-  mytotal = calculate_total(mycards)
-  dealertotal = calculate_total(dealercards)
-
-  if mytotal == 21 && dealertotal < 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "Blackjack! #{player_name} win!"
-    return
-  end
-
-  if mytotal == 21 && dealertotal == mytotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts 'draw game'
-    return
-  end
-
-  mytotal = player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-
-  if mytotal == 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "Blackjack! #{player_name} win!"
-    return
-  end
-
-  if mytotal > 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "burst! #{ player_name } lose"
-    return
-  end
-
-  dealertotal = dealer_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-
-  if dealertotal > 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "dealer burst! #{ player_name } win"
-    return
-  end
-
-  report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-  if mytotal > dealertotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "#{ player_name } win"
-  elsif mytotal < dealertotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts 'Dealer win'
-  else
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts 'draw game'
-  end
-end
-
-def report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-  puts
-  puts "dealer's cards: #{ dealercards.inspect }"
-  puts "dealer's total: #{ dealertotal }"
-  puts "#{ player_name }'s cards: #{ mycards.inspect }"
-  puts "#{ player_name }'s total: #{ mytotal }"
-  puts
-end
-
-def new_deck
-  suits = %w(H D S C)
-  cards = %w(2 3 4 5 6 7 8 9 10 J Q K A)
-  deck = suits.product(cards)
-  deck.shuffle!
-end
-
-def deal(deck, mycards, dealercards)
-  mycards << deck.pop
-  dealercards << deck.pop
-  mycards << deck.pop
-  dealercards << deck.pop
-end
-
-# produce new mytotal,22 or 21 or <21
-def player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-
-  while true
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts 'What would you like to do? 1) hit 2) stay'
-    hit_or_stay = gets.chomp
-    unless %w(1 2).include?(hit_or_stay)
-      puts 'What would you like to do? 1) hit 2) stay'
-      next
-    end
-
-    break if hit_or_stay == '2'
-
-    mycards << deck.pop
-    mytotal = calculate_total(mycards)
-    return 21 if mytotal == 21
-    return 22 if mytotal > 21
-  end
-
-  mytotal
-end
-
-def dealer_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-  while true
-    break if dealertotal >= 17 && dealertotal > mytotal
-    dealercards << deck.pop
-    # puts "decksize:#{ deck.size }"
-    dealertotal = calculate_total(dealercards)
-  end
-  dealertotal
-end
 
 def calculate_total(cards)
   cards_ace = cards.select { |c| c[1] == 'A' }
@@ -200,7 +107,6 @@ def calculate_ace_sets(arr)
   result
 end
 
-# unit test start
 assert_equal(2, calculate_value(%w(S 2)))
 assert_equal(9, calculate_value(%w(S 9)))
 assert_equal(10, calculate_value(%w(S 10)))
@@ -228,16 +134,90 @@ assert_equal([4, 14], make_total_vals(3, 1))
 assert_equal([6, 16, 26], make_total_vals(4, 2))
 assert_equal([5, 15, 25, 35], make_total_vals(2, 3))
 
-# main progress start
-puts 'What\'s your name?'
-player_name = gets.chomp
+puts 'welcome to blackjack!'
 
-play_game(player_name)
+suits = %w(H D S C)
+cards = %w(2 3 4 5 6 7 8 9 10 J Q K A)
+
+deck = suits.product(cards)
+deck.shuffle!
+
+# Deal Cards
+
+mycards = []
+dealercards = []
+
+mycards << deck.pop
+dealercards << deck.pop
+mycards << deck.pop
+dealercards << deck.pop
+
+dealertotal = calculate_total(dealercards)
+mytotal = calculate_total(mycards)
+
+def ask_player(dealercards, mycards, dealertotal, mytotal)
+  puts "Dealer has: #{ dealercards.inspect } " \
+  "for a total of: #{ dealertotal }"
+  puts "You have: #{ mycards.inspect } " \
+  "for a total of: #{ mytotal }"
+  puts ''
+  puts 'What would you like to do? 1) hit 2) stay'
+end
+
+ask_player(dealercards, mycards, dealertotal, mytotal)
 
 while true
-  puts "\nplay again? 1)Yes 2)No"
-  again = gets.chomp
-  next unless %w(1 2).include?(again)
-  break if again == '2'
-  play_game(player_name) if again == '1'
+  hit_or_stay = gets.chomp
+  unless %w(1 2).include?(hit_or_stay)
+    puts 'What would you like to do? 1) hit 2) stay'
+    next
+  end
+
+  break if hit_or_stay == '2'
+
+  mycards << deck.pop
+  mytotal = calculate_total(mycards)
+
+  if mytotal == 21
+    puts "You have: #{ mycards.inspect } " \
+    "for a total of: #{ mytotal }"
+    puts 'Blackjack! You win!'
+    exit
+  end
+
+  if mytotal > 21
+    puts "You have: #{ mycards.inspect } " \
+    "for a total of: #{ mytotal }"
+    puts 'Burst! You lose!'
+    exit
+  end
+
+  ask_player(dealercards, mycards, dealertotal, mytotal)
+end
+
+while true
+  break if dealertotal >= 17 && dealertotal > mytotal
+  dealercards << deck.pop
+  dealertotal = calculate_total(dealercards)
+end
+
+puts "Dealer has: #{ dealercards.inspect } " \
+"for a total of: #{ dealertotal }"
+
+if dealertotal == 21
+  puts 'Blackjack! Dealer win!'
+  exit
+end
+
+if dealertotal > 21
+  puts 'Dealer burst! You win!'
+  exit
+end
+
+if mytotal > dealertotal
+  puts 'You win'
+elsif mytotal < dealertotal
+  puts 'You lose'
+else
+  puts 'draw game'
 end
