@@ -12,55 +12,71 @@ def play_game(player_name)
 
   mytotal = calculate_total(mycards)
   dealertotal = calculate_total(dealercards)
-
-  if mytotal == 21 && dealertotal < 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "Blackjack! #{player_name} win!"
-    return
-  end
-
-  if mytotal == 21 && dealertotal == mytotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts 'draw game'
-    return
-  end
+  return if player_blackjack?(mycards, mytotal, dealercards, dealertotal, player_name)
+  return if both_blackjack?(mycards, mytotal, dealercards, dealertotal, player_name)
 
   mytotal = player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-
-  if mytotal == 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "Blackjack! #{player_name} win!"
-    return
-  end
-
-  if mytotal > 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "burst! #{ player_name } lose"
-    return
-  end
+  return if player_blackjack?(mycards, mytotal, dealercards, dealertotal, player_name)
+  return if player_burst?(mycards, mytotal, dealercards, dealertotal, player_name)
 
   dealertotal = dealer_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+  return if dealer_burst?(mycards, mytotal, dealercards, dealertotal, player_name)
 
-  if dealertotal > 21
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
-    puts "dealer burst! #{ player_name } win"
-    return
-  end
+  compare_score(mycards, mytotal, dealercards, dealertotal, player_name)
+end
 
-  report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+def compare_score(mycards, mytotal, dealercards, dealertotal, player_name)
+  report(mycards, mytotal, dealercards, dealertotal, player_name)
   if mytotal > dealertotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
     puts "#{ player_name } win"
   elsif mytotal < dealertotal
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
     puts 'Dealer win'
   else
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
     puts 'draw game'
   end
 end
 
-def report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+def dealer_burst?(mycards, mytotal, dealercards, dealertotal, player_name)
+  if dealertotal > 21
+    report(mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "dealer burst! #{ player_name } win"
+    return true
+  else
+    return false
+  end
+end
+
+def player_burst?(mycards, mytotal, dealercards, dealertotal, player_name)
+  if mytotal > 21
+    report(mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "burst! #{ player_name } lose"
+    return true
+  else
+    return false
+  end
+end
+
+def player_blackjack?(mycards, mytotal, dealercards, dealertotal, player_name)
+  if mytotal == 21 && dealertotal < 21
+    report(mycards, mytotal, dealercards, dealertotal, player_name)
+    puts "Blackjack! #{player_name} win!"
+    return true
+  else
+    return false
+  end
+end
+
+def both_blackjack?(mycards, mytotal, dealercards, dealertotal, player_name)
+  if mytotal == 21 && dealertotal == mytotal
+    report(mycards, mytotal, dealercards, dealertotal, player_name)
+    puts 'draw game'
+    return true
+  else
+    return false
+  end
+end
+
+def report(mycards, mytotal, dealercards, dealertotal, player_name)
   puts
   puts "dealer's cards: #{ dealercards.inspect }"
   puts "dealer's total: #{ dealertotal }"
@@ -87,7 +103,7 @@ end
 def player_turn(deck, mycards, mytotal, dealercards, dealertotal, player_name)
 
   while true
-    report(deck, mycards, mytotal, dealercards, dealertotal, player_name)
+    report(mycards, mytotal, dealercards, dealertotal, player_name)
     puts 'What would you like to do? 1) hit 2) stay'
     hit_or_stay = gets.chomp
     unless %w(1 2).include?(hit_or_stay)
@@ -227,6 +243,8 @@ assert_equal([4, 14, 24, 34, 44], make_ace_vals(4))
 assert_equal([4, 14], make_total_vals(3, 1))
 assert_equal([6, 16, 26], make_total_vals(4, 2))
 assert_equal([5, 15, 25, 35], make_total_vals(2, 3))
+
+assert_equal(30, calculate_total([["S", "4"], ["S", "9"], ["S", "5"], ["C", "2"], ["S", "10"]]))
 
 # main progress start
 puts 'What\'s your name?'
